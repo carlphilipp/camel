@@ -32,6 +32,7 @@ import org.apache.camel.impl.InterceptSendToMockEndpointStrategy;
 import org.apache.camel.management.JmxSystemPropertyKeys;
 import org.apache.camel.spi.Breakpoint;
 import org.apache.camel.spi.Debugger;
+import org.apache.camel.spi.EventNotifier;
 import org.apache.camel.spring.SpringCamelContext;
 import org.apache.camel.test.ExcludingPackageScanClassResolver;
 import org.apache.camel.test.spring.CamelSpringTestHelper.DoToSpringCamelContextsStrategy;
@@ -289,7 +290,9 @@ public class CamelSpringTestContextLoader extends AbstractContextLoader {
                 @Override
                 public void execute(String contextName, SpringCamelContext camelContext) throws Exception {
                     LOG.info("Enabling RouteCoverage");
-                    camelContext.getManagementStrategy().addEventNotifier(new RouteCoverageEventNotifier(testClass.getName(), (String) -> getTestMethod().getName()));
+                    EventNotifier notifier = new RouteCoverageEventNotifier(testClass.getName(), (String) -> getTestMethod().getName());
+                    camelContext.addService(notifier, true);
+                    camelContext.getManagementStrategy().addEventNotifier(notifier);
                 }
             });
         }

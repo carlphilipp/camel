@@ -42,6 +42,8 @@ public class RouteCoverageEventNotifier extends EventNotifierSupport {
     public RouteCoverageEventNotifier(String testClassName, Function testMethodName) {
         this.testClassName = testClassName;
         this.testMethodName = testMethodName;
+        setIgnoreCamelContextEvents(false);
+        setIgnoreExchangeEvents(true);
     }
 
     @Override
