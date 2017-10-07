@@ -114,6 +114,9 @@ public final class CamelJavaTreeParserHelper {
                 from.setFileName(fullyQualifiedFileName);
                 answer.add(from);
                 parent = from;
+            } else if ("routeId".equals(name)) {
+                // should be set on the parent
+                parent.setRouteId(node.getRouteId());
             } else if ("choice".equals(name)) {
                 CamelNodeDetails output = nodeFactory.copyNode(parent, name, node);
                 parent.addOutput(output);
@@ -199,9 +202,10 @@ public final class CamelJavaTreeParserHelper {
 
         // special for Java DSL having some endXXX
         boolean isEnd = "end".equals(name) || "endChoice".equals(name) || "endDoTry".equals(name);
+        boolean isRouteId = "routeId".equals(name);
 
         // only include if its a known Camel model
-        if (isEnd || camelCatalog.findModelNames().contains(name)) {
+        if (isEnd || isRouteId || camelCatalog.findModelNames().contains(name)) {
             CamelNodeDetails newNode = nodeFactory.newNode(node, name);
 
             // include source code details
@@ -211,6 +215,19 @@ public final class CamelJavaTreeParserHelper {
                 newNode.setLineNumber("" + line);
             }
             newNode.setFileName(fullyQualifiedFileName);
+
+            if (isRouteId) {
+                // grab the route id
+                List args = mi.arguments();
+                if (args != null && args.size() > 0) {
+                    // the first argument has the route id
+                    Expression exp = (Expression) args.get(0);
+                    String routeId = getLiteralValue(clazz, block, exp);
+                    if (routeId != null) {
+                        newNode.setRouteId(routeId);
+                    }
+                }
+            }
 
             node.addPreliminaryOutput(newNode);
             return node;
