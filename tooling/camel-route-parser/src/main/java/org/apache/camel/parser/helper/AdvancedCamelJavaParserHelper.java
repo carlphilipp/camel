@@ -24,6 +24,7 @@ import org.apache.camel.catalog.DefaultCamelCatalog;
 import org.apache.camel.catalog.JSonSchemaHelper;
 import org.apache.camel.parser.RouteBuilderParser;
 import org.apache.camel.parser.model.CamelNodeDetails;
+import org.apache.camel.parser.model.CamelNodeDetailsFactory;
 import org.apache.camel.parser.roaster.StatementFieldSource;
 import org.jboss.forge.roaster._shade.org.eclipse.jdt.core.dom.ASTNode;
 import org.jboss.forge.roaster._shade.org.eclipse.jdt.core.dom.AnonymousClassDeclaration;
@@ -63,8 +64,9 @@ public final class AdvancedCamelJavaParserHelper {
     public CamelNodeDetails parseCamelRoute(JavaClassSource clazz, MethodSource<JavaClassSource> method) {
 
         // find any from which is the start of the route
+        CamelNodeDetailsFactory nodeFactory = CamelNodeDetailsFactory.newInstance();
 
-        CamelNodeDetails route = new CamelNodeDetails(null, "route");
+        CamelNodeDetails route = nodeFactory.newNode(null, "route");
 
         if (method != null) {
             MethodDeclaration md = (MethodDeclaration) method.getInternal();
@@ -75,8 +77,7 @@ public final class AdvancedCamelJavaParserHelper {
                     if (statement instanceof ExpressionStatement) {
                         ExpressionStatement es = (ExpressionStatement) statement;
                         Expression exp = es.getExpression();
-
-                        parseExpression(clazz, block, exp, route);
+                        parseExpression(nodeFactory, clazz, block, exp, route);
                     }
                 }
             }
@@ -85,7 +86,7 @@ public final class AdvancedCamelJavaParserHelper {
         // now parse the route node and build a tree structure of the EIPs
         String root = route.getOutputs().get(0).getName();
 
-        CamelNodeDetails answer = new CamelNodeDetails(null, root);
+        CamelNodeDetails answer = nodeFactory.newNode(null, root);
         CamelNodeDetails parent = answer;
 
         // TODO: use camel catalog to know about these types and when to do what
@@ -96,17 +97,17 @@ public final class AdvancedCamelJavaParserHelper {
 
             // special for some EIPs
             if ("choice".equals(name)) {
-                CamelNodeDetails output = new CamelNodeDetails(parent, name);
+                CamelNodeDetails output = nodeFactory.newNode(parent, name);
                 parent.addOutput(output);
                 parent = output;
             } else if ("when".equals(name)) {
                 parent = grandParent(parent, "choice");
-                CamelNodeDetails output = new CamelNodeDetails(parent, name);
+                CamelNodeDetails output = nodeFactory.newNode(parent, name);
                 parent.addOutput(output);
                 parent = output;
             } else if ("otherwise".equals(name)) {
                 parent = grandParent(parent, "choice");
-                CamelNodeDetails output = new CamelNodeDetails(parent, name);
+                CamelNodeDetails output = nodeFactory.newNode(parent, name);
                 parent.addOutput(output);
                 parent = output;
             } else if ("end".equals(name) || "endChoice".equals(name) || "endDoTry".equals(name)) {
@@ -120,12 +121,12 @@ public final class AdvancedCamelJavaParserHelper {
                 boolean hasOutput = hasOutput(name);
                 if (hasOutput) {
                     // has output so add as new child node
-                    CamelNodeDetails output = new CamelNodeDetails(parent, name);
+                    CamelNodeDetails output = nodeFactory.newNode(parent, name);
                     parent.addOutput(output);
                     parent = output;
                 } else {
                     // add straight to itself
-                    CamelNodeDetails output = new CamelNodeDetails(parent, name);
+                    CamelNodeDetails output = nodeFactory.newNode(parent, name);
                     parent.addOutput(output);
                 }
             }
@@ -160,20 +161,22 @@ public final class AdvancedCamelJavaParserHelper {
         }
     }
 
-    private void parseExpression(JavaClassSource clazz, Block block, Expression exp, CamelNodeDetails node) {
+    private void parseExpression(CamelNodeDetailsFactory nodeFactory,
+                                 JavaClassSource clazz, Block block, Expression exp, CamelNodeDetails node) {
         if (exp == null) {
             return;
         }
         if (exp instanceof MethodInvocation) {
             MethodInvocation mi = (MethodInvocation) exp;
-            node = doParseCamelModels(clazz, block, mi, node);
+            node = doParseCamelModels(nodeFactory, clazz, block, mi, node);
             // if the method was called on another method, then recursive
             exp = mi.getExpression();
-            parseExpression(clazz, block, exp, node);
+            parseExpression(nodeFactory, clazz, block, exp, node);
         }
     }
 
-    private CamelNodeDetails doParseCamelModels(JavaClassSource clazz, Block block, MethodInvocation mi, CamelNodeDetails node) {
+    private CamelNodeDetails doParseCamelModels(CamelNodeDetailsFactory nodeFactory,
+                                                JavaClassSource clazz, Block block, MethodInvocation mi, CamelNodeDetails node) {
         String name = mi.getName().getIdentifier();
 
         // special for Java DSL having some endXXX
@@ -181,7 +184,7 @@ public final class AdvancedCamelJavaParserHelper {
 
         // only include if its a known Camel model
         if (isEnd || camelCatalog.findModelNames().contains(name)) {
-            CamelNodeDetails newNode = new CamelNodeDetails(node, name);
+            CamelNodeDetails newNode = nodeFactory.newNode(node, name);
             node.addPreliminaryOutput(newNode);
             return node;
         }

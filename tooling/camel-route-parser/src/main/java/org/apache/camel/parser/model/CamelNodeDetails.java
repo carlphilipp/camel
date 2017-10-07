@@ -21,13 +21,15 @@ import java.util.List;
 
 public class CamelNodeDetails {
 
+    private final CamelNodeDetails parent;
     private final String name;
+    private final int order;
     private List<CamelNodeDetails> outputs;
-    private CamelNodeDetails parent;
 
-    public CamelNodeDetails(CamelNodeDetails parent, String name) {
+    public CamelNodeDetails(CamelNodeDetails parent, String name, int order) {
         this.parent = parent;
         this.name = name;
+        this.order = order;
     }
 
     public void addPreliminaryOutput(CamelNodeDetails output) {
@@ -53,6 +55,10 @@ public class CamelNodeDetails {
         return name;
     }
 
+    public int getOrder() {
+        return order;
+    }
+
     public List<CamelNodeDetails> getOutputs() {
         return outputs;
     }
@@ -63,6 +69,8 @@ public class CamelNodeDetails {
 
     public String dump(int level) {
         StringBuilder sb = new StringBuilder();
+        sb.append(order);
+        sb.append("\t");
         sb.append(padString(level));
         sb.append(name);
         if (outputs != null) {

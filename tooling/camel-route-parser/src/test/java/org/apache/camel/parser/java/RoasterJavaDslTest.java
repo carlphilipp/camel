@@ -20,15 +20,21 @@ import java.io.File;
 
 import org.apache.camel.parser.AdvancedRouteBuilderParser;
 import org.apache.camel.parser.model.CamelNodeDetails;
+import org.apache.camel.test.junit4.CamelTestSupport;
 import org.jboss.forge.roaster.Roaster;
 import org.jboss.forge.roaster.model.source.JavaClassSource;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RoasterJavaDslTest {
+public class RoasterJavaDslTest extends CamelTestSupport {
 
     private static final Logger LOG = LoggerFactory.getLogger(RoasterJavaDslTest.class);
+
+    @Override
+    public boolean isDumpRouteCoverage() {
+        return true;
+    }
 
     @Test
     public void parse() throws Exception {
@@ -39,6 +45,17 @@ public class RoasterJavaDslTest {
         LOG.info("\n" + tree);
 
         System.out.println(tree);
+    }
+
+    @Test
+    public void testRouteCoverage() throws Exception {
+        context.addRoutes(new MyJavaDslRouteBuilder());
+
+        getMockEndpoint("mock:result").expectedMessageCount(1);
+
+        template.sendBody("direct:start", "Hello World");
+
+        assertMockEndpointsSatisfied();
     }
 
 }

@@ -104,6 +104,8 @@ public final class RouteCoverageXmlParser {
                                 el.setAttribute("exchangesTotal", "" + total);
                                 long totalTime = processor.getTotalProcessingTime();
                                 el.setAttribute("totalProcessingTime", "" + totalTime);
+                                int index = processor.getIndex();
+                                el.setAttribute("index", "" + index);
                             }
                         }
                     } catch (Exception e) {
