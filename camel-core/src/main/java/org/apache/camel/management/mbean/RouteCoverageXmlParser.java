@@ -96,7 +96,20 @@ public final class RouteCoverageXmlParser {
                                 el.setAttribute("totalProcessingTime", "" + totalTime);
                             }
                         } else if ("from".equals(qName)) {
-                            // TODO: include the stats from the route mbean as that would be the same
+                            // grab statistics from the parent route as from would be the same
+                            Element parent = elementStack.peek();
+                            if (parent != null) {
+                                String routeId = parent.getAttribute("id");
+                                ManagedRouteMBean route = camelContext.getManagedRoute(routeId, ManagedRouteMBean.class);
+                                if (route != null) {
+                                    long total = route.getExchangesTotal();
+                                    el.setAttribute("exchangesTotal", "" + total);
+                                    long totalTime = route.getTotalProcessingTime();
+                                    el.setAttribute("totalProcessingTime", "" + totalTime);
+                                    // from is index-0
+                                    el.setAttribute("index", "0");
+                                }
+                            }
                         } else {
                             ManagedProcessorMBean processor = camelContext.getManagedProcessor(id, ManagedProcessorMBean.class);
                             if (processor != null) {

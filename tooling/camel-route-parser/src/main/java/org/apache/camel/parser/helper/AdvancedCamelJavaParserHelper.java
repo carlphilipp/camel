@@ -88,13 +88,13 @@ public final class AdvancedCamelJavaParserHelper {
             }
         }
 
-        // now parse the route node and build a tree structure of the EIPs
-        String root = route.getOutputs().get(0).getName();
+        // now parse the route node and build the correct model/tree structure of the EIPs
 
         // re-create factory as we rebuild the tree
         nodeFactory = CamelNodeDetailsFactory.newInstance();
 
-        CamelNodeDetails answer = nodeFactory.newNode(null, root);
+        CamelNodeDetails from = route.getOutputs().get(0);
+        CamelNodeDetails answer = nodeFactory.copyNode(null, "from", from);
         answer.setFileName(fullyQualifiedFileName);
 
         CamelNodeDetails parent = answer;
