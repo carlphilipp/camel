@@ -28,9 +28,9 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RoasterJavaDslTest extends CamelTestSupport {
+public class RoasterJavaDslTwoRoutesTest extends CamelTestSupport {
 
-    private static final Logger LOG = LoggerFactory.getLogger(RoasterJavaDslTest.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RoasterJavaDslTwoRoutesTest.class);
 
     @Override
     public boolean isDumpRouteCoverage() {
@@ -39,31 +39,39 @@ public class RoasterJavaDslTest extends CamelTestSupport {
 
     @Test
     public void parseTree() throws Exception {
-        JavaClassSource clazz = (JavaClassSource) Roaster.parse(new File("src/test/java/org/apache/camel/parser/java/MyJavaDslRouteBuilder.java"));
+        JavaClassSource clazz = (JavaClassSource) Roaster.parse(new File("src/test/java/org/apache/camel/parser/java/TwoRoutesRouteBuilder.java"));
 
         List<CamelNodeDetails> list = RouteBuilderParser.parseRouteBuilderTree(clazz, ".",
-            "src/test/java/org/apache/camel/parser/java/MyJavaDslRouteBuilder.java",true);
-        assertEquals(1, list.size());
+            "src/test/java/org/apache/camel/parser/java/TwoRoutesRouteBuilder.java",true);
+        assertEquals(2, list.size());
+
         CamelNodeDetails details = list.get(0);
-        assertEquals("src/test/java/org/apache/camel/parser/java/MyJavaDslRouteBuilder.java", details.getFileName());
+        CamelNodeDetails details2 = list.get(1);
+        assertEquals("src/test/java/org/apache/camel/parser/java/TwoRoutesRouteBuilder.java", details.getFileName());
+        assertEquals("src/test/java/org/apache/camel/parser/java/TwoRoutesRouteBuilder.java", details2.getFileName());
 
         String tree = details.dump(0);
         LOG.info("\n" + tree);
 
+        String tree2 = details2.dump(0);
+        LOG.info("\n" + tree2);
+
         assertTrue(tree.contains("25\tfrom"));
-        assertTrue(tree.contains("27\t  setHeader"));
-        assertTrue(tree.contains("30\t      toD"));
-        assertTrue(tree.contains("33\t    otherwise"));
-        assertTrue(tree.contains("36\t  to"));
+        assertTrue(tree.contains("26\t  log"));
+        assertTrue(tree.contains("27\t  to"));
+
+        assertTrue(tree2.contains("29\tfrom"));
+        assertTrue(tree2.contains("30\t  transform"));
+        assertTrue(tree2.contains("31\t  to"));
     }
 
     @Test
     public void testRouteCoverage() throws Exception {
-        context.addRoutes(new MyJavaDslRouteBuilder());
+        context.addRoutes(new TwoRoutesRouteBuilder());
 
-        getMockEndpoint("mock:result").expectedMessageCount(1);
+        getMockEndpoint("mock:foo").expectedMessageCount(1);
 
-        template.sendBody("direct:start", "Hello World");
+        template.sendBody("direct:foo", "Hello World");
 
         assertMockEndpointsSatisfied();
     }

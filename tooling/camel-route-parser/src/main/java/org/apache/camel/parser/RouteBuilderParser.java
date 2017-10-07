@@ -20,6 +20,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.camel.parser.helper.CamelJavaTreeParserHelper;
@@ -75,10 +76,12 @@ public final class RouteBuilderParser {
         CamelJavaTreeParserHelper parser = new CamelJavaTreeParserHelper();
         List<CamelNodeDetails> list = new ArrayList<>();
         for (MethodSource<JavaClassSource> configureMethod : methods) {
-            // TODO: list of details, on per route
-            CamelNodeDetails details = parser.parseCamelRoute(clazz, baseDir, fullyQualifiedFileName, configureMethod);
-            list.add(details);
+            // there may be multiple route builder configure methods
+            List<CamelNodeDetails> details = parser.parseCamelRouteTree(clazz, baseDir, fullyQualifiedFileName, configureMethod);
+            list.addAll(details);
         }
+        // we end up parsing bottom->up so reverse list
+        Collections.reverse(list);
 
         return list;
     }

@@ -19,13 +19,13 @@ package org.apache.camel.parser.helper;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.camel.catalog.CamelCatalog;
 import org.apache.camel.catalog.DefaultCamelCatalog;
 import org.apache.camel.catalog.JSonSchemaHelper;
-import org.apache.camel.parser.RouteBuilderParser;
 import org.apache.camel.parser.model.CamelNodeDetails;
 import org.apache.camel.parser.model.CamelNodeDetailsFactory;
 import org.apache.camel.parser.roaster.StatementFieldSource;
@@ -66,10 +66,8 @@ public final class CamelJavaTreeParserHelper {
 
     private CamelCatalog camelCatalog = new DefaultCamelCatalog(true);
 
-    // TODO: add support for multiple routes
-    // TODO: rename this method
-    public CamelNodeDetails parseCamelRoute(JavaClassSource clazz, String baseDir, String fullyQualifiedFileName,
-                                            MethodSource<JavaClassSource> method) {
+    public List<CamelNodeDetails> parseCamelRouteTree(JavaClassSource clazz, String baseDir, String fullyQualifiedFileName,
+                                                      MethodSource<JavaClassSource> method) {
 
         // find any from which is the start of the route
         CamelNodeDetailsFactory nodeFactory = CamelNodeDetailsFactory.newInstance();
@@ -91,24 +89,32 @@ public final class CamelJavaTreeParserHelper {
             }
         }
 
+        List<CamelNodeDetails> answer = new ArrayList<>();
+
+        if (route.getOutputs().isEmpty()) {
+            // okay no routes found
+            return answer;
+        }
+
         // now parse the route node and build the correct model/tree structure of the EIPs
 
         // re-create factory as we rebuild the tree
         nodeFactory = CamelNodeDetailsFactory.newInstance();
+        CamelNodeDetails parent = route.getOutputs().get(0);
 
-        CamelNodeDetails from = route.getOutputs().get(0);
-        CamelNodeDetails answer = nodeFactory.copyNode(null, "from", from);
-        answer.setFileName(fullyQualifiedFileName);
-
-        CamelNodeDetails parent = answer;
-        for (int i = 1; i < route.getOutputs().size(); i++) {
-
+        for (int i = 0; i < route.getOutputs().size(); i++) {
             CamelNodeDetails node = route.getOutputs().get(i);
             String name = node.getName();
 
             // TODO: use camel catalog to know about these types and when to do what
-            // special for some EIPs
-            if ("choice".equals(name)) {
+            // special for some EIPs such as choice
+
+            if ("from".equals(name)) {
+                CamelNodeDetails from = nodeFactory.copyNode(null, "from", node);
+                from.setFileName(fullyQualifiedFileName);
+                answer.add(from);
+                parent = from;
+            } else if ("choice".equals(name)) {
                 CamelNodeDetails output = nodeFactory.copyNode(parent, name, node);
                 parent.addOutput(output);
                 parent = output;
