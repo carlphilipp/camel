@@ -21,10 +21,25 @@ import java.util.List;
 
 public class CamelNodeDetails {
 
+    // source code details
+    private String fileName;
+    private String lineNumber;
+    private String lineNumberEnd;
+
+    // camel node details
     private final CamelNodeDetails parent;
     private final String name;
     private final int order;
     private List<CamelNodeDetails> outputs;
+
+    public CamelNodeDetails(CamelNodeDetails parent, String name, int order, CamelNodeDetails copy) {
+        this.parent = parent;
+        this.name = name;
+        this.order = order;
+        this.fileName = copy.getFileName();
+        this.lineNumber = copy.getLineNumber();
+        this.lineNumberEnd = copy.getLineNumberEnd();
+    }
 
     public CamelNodeDetails(CamelNodeDetails parent, String name, int order) {
         this.parent = parent;
@@ -63,13 +78,37 @@ public class CamelNodeDetails {
         return outputs;
     }
 
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    public String getLineNumber() {
+        return lineNumber;
+    }
+
+    public void setLineNumber(String lineNumber) {
+        this.lineNumber = lineNumber;
+    }
+
+    public String getLineNumberEnd() {
+        return lineNumberEnd;
+    }
+
+    public void setLineNumberEnd(String lineNumberEnd) {
+        this.lineNumberEnd = lineNumberEnd;
+    }
+
     public String toString() {
         return name;
     }
 
     public String dump(int level) {
         StringBuilder sb = new StringBuilder();
-        sb.append(order);
+        sb.append(lineNumber);
         sb.append("\t");
         sb.append(padString(level));
         sb.append(name);

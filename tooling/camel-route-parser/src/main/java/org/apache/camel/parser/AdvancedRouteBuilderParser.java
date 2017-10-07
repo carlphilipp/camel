@@ -31,7 +31,8 @@ import org.jboss.forge.roaster.model.source.MethodSource;
 public class AdvancedRouteBuilderParser {
 
     // TODO: list of details, on per route
-    public static CamelNodeDetails parseRouteBuilder(JavaClassSource clazz, boolean includeInlinedRouteBuilders) {
+    public static CamelNodeDetails parseRouteBuilder(JavaClassSource clazz, String baseDir, String fullyQualifiedFileName,
+                                                     boolean includeInlinedRouteBuilders) {
         AdvancedCamelJavaParserHelper parser = new AdvancedCamelJavaParserHelper();
 
         List<MethodSource<JavaClassSource>> methods = new ArrayList<>();
@@ -47,7 +48,7 @@ public class AdvancedRouteBuilderParser {
         }
 
         for (MethodSource<JavaClassSource> configureMethod : methods) {
-            CamelNodeDetails details = parser.parseCamelRoute(clazz, configureMethod);
+            CamelNodeDetails details = parser.parseCamelRoute(clazz, baseDir, fullyQualifiedFileName, configureMethod);
             return details;
         }
 

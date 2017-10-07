@@ -40,10 +40,13 @@ public class RoasterJavaDslTest extends CamelTestSupport {
     public void parse() throws Exception {
         JavaClassSource clazz = (JavaClassSource) Roaster.parse(new File("src/test/java/org/apache/camel/parser/java/MyJavaDslRouteBuilder.java"));
 
-        CamelNodeDetails details = AdvancedRouteBuilderParser.parseRouteBuilder(clazz, true);
+        CamelNodeDetails details = AdvancedRouteBuilderParser.parseRouteBuilder(clazz, ".",
+            "src/test/java/org/apache/camel/parser/java/MyJavaDslRouteBuilder.java",true);
         String tree = details.dump(0);
         LOG.info("\n" + tree);
 
+        String name = details.getFileName();
+        System.out.println(name);
         System.out.println(tree);
     }
 

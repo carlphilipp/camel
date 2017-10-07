@@ -16,6 +16,9 @@
  */
 package org.apache.camel.parser.helper;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.util.List;
 import java.util.Map;
 
@@ -57,11 +60,13 @@ import org.jboss.forge.roaster.model.source.MethodSource;
  * <p/>
  * This implementation is lower level details. For a higher level parser see {@link RouteBuilderParser}.
  */
+// TODO: rename this class
 public final class AdvancedCamelJavaParserHelper {
 
     private CamelCatalog camelCatalog = new DefaultCamelCatalog(true);
 
-    public CamelNodeDetails parseCamelRoute(JavaClassSource clazz, MethodSource<JavaClassSource> method) {
+    public CamelNodeDetails parseCamelRoute(JavaClassSource clazz, String baseDir, String fullyQualifiedFileName,
+                                            MethodSource<JavaClassSource> method) {
 
         // find any from which is the start of the route
         CamelNodeDetailsFactory nodeFactory = CamelNodeDetailsFactory.newInstance();
@@ -77,7 +82,7 @@ public final class AdvancedCamelJavaParserHelper {
                     if (statement instanceof ExpressionStatement) {
                         ExpressionStatement es = (ExpressionStatement) statement;
                         Expression exp = es.getExpression();
-                        parseExpression(nodeFactory, clazz, block, exp, route);
+                        parseExpression(nodeFactory, fullyQualifiedFileName, clazz, block, exp, route);
                     }
                 }
             }
@@ -86,28 +91,32 @@ public final class AdvancedCamelJavaParserHelper {
         // now parse the route node and build a tree structure of the EIPs
         String root = route.getOutputs().get(0).getName();
 
+        // re-create factory as we rebuild the tree
+        nodeFactory = CamelNodeDetailsFactory.newInstance();
+
         CamelNodeDetails answer = nodeFactory.newNode(null, root);
+        answer.setFileName(fullyQualifiedFileName);
+
         CamelNodeDetails parent = answer;
-
-        // TODO: use camel catalog to know about these types and when to do what
-
         for (int i = 1; i < route.getOutputs().size(); i++) {
+
             CamelNodeDetails node = route.getOutputs().get(i);
             String name = node.getName();
 
+            // TODO: use camel catalog to know about these types and when to do what
             // special for some EIPs
             if ("choice".equals(name)) {
-                CamelNodeDetails output = nodeFactory.newNode(parent, name);
+                CamelNodeDetails output = nodeFactory.copyNode(parent, name, node);
                 parent.addOutput(output);
                 parent = output;
             } else if ("when".equals(name)) {
                 parent = grandParent(parent, "choice");
-                CamelNodeDetails output = nodeFactory.newNode(parent, name);
+                CamelNodeDetails output = nodeFactory.copyNode(parent, name, node);
                 parent.addOutput(output);
                 parent = output;
             } else if ("otherwise".equals(name)) {
                 parent = grandParent(parent, "choice");
-                CamelNodeDetails output = nodeFactory.newNode(parent, name);
+                CamelNodeDetails output = nodeFactory.copyNode(parent, name, node);
                 parent.addOutput(output);
                 parent = output;
             } else if ("end".equals(name) || "endChoice".equals(name) || "endDoTry".equals(name)) {
@@ -121,12 +130,12 @@ public final class AdvancedCamelJavaParserHelper {
                 boolean hasOutput = hasOutput(name);
                 if (hasOutput) {
                     // has output so add as new child node
-                    CamelNodeDetails output = nodeFactory.newNode(parent, name);
+                    CamelNodeDetails output = nodeFactory.copyNode(parent, name, node);
                     parent.addOutput(output);
                     parent = output;
                 } else {
                     // add straight to itself
-                    CamelNodeDetails output = nodeFactory.newNode(parent, name);
+                    CamelNodeDetails output = nodeFactory.copyNode(parent, name, node);
                     parent.addOutput(output);
                 }
             }
@@ -161,21 +170,21 @@ public final class AdvancedCamelJavaParserHelper {
         }
     }
 
-    private void parseExpression(CamelNodeDetailsFactory nodeFactory,
+    private void parseExpression(CamelNodeDetailsFactory nodeFactory, String fullyQualifiedFileName,
                                  JavaClassSource clazz, Block block, Expression exp, CamelNodeDetails node) {
         if (exp == null) {
             return;
         }
         if (exp instanceof MethodInvocation) {
             MethodInvocation mi = (MethodInvocation) exp;
-            node = doParseCamelModels(nodeFactory, clazz, block, mi, node);
+            node = doParseCamelModels(nodeFactory, fullyQualifiedFileName, clazz, block, mi, node);
             // if the method was called on another method, then recursive
             exp = mi.getExpression();
-            parseExpression(nodeFactory, clazz, block, exp, node);
+            parseExpression(nodeFactory, fullyQualifiedFileName, clazz, block, exp, node);
         }
     }
 
-    private CamelNodeDetails doParseCamelModels(CamelNodeDetailsFactory nodeFactory,
+    private CamelNodeDetails doParseCamelModels(CamelNodeDetailsFactory nodeFactory, String fullyQualifiedFileName,
                                                 JavaClassSource clazz, Block block, MethodInvocation mi, CamelNodeDetails node) {
         String name = mi.getName().getIdentifier();
 
@@ -185,6 +194,15 @@ public final class AdvancedCamelJavaParserHelper {
         // only include if its a known Camel model
         if (isEnd || camelCatalog.findModelNames().contains(name)) {
             CamelNodeDetails newNode = nodeFactory.newNode(node, name);
+
+            // include source code details
+            int pos = mi.getName().getStartPosition();
+            int line = findLineNumber(fullyQualifiedFileName, pos);
+            if (line > -1) {
+                newNode.setLineNumber("" + line);
+            }
+            newNode.setFileName(fullyQualifiedFileName);
+
             node.addPreliminaryOutput(newNode);
             return node;
         }
@@ -251,6 +269,10 @@ public final class AdvancedCamelJavaParserHelper {
         return null;
     }
 
+    /**
+     * @deprecated currently not in use
+     */
+    @Deprecated
     public static String getLiteralValue(JavaClassSource clazz, Block block, Expression expression) {
         // unwrap parenthesis
         if (expression instanceof ParenthesizedExpression) {
@@ -390,6 +412,29 @@ public final class AdvancedCamelJavaParserHelper {
             }
         }
         return false;
+    }
+
+    private static int findLineNumber(String fullyQualifiedFileName, int position) {
+        int lines = 0;
+
+        try {
+            int current = 0;
+            try (BufferedReader br = new BufferedReader(new FileReader(new File(fullyQualifiedFileName)))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    lines++;
+                    current += line.length() + 1; // add 1 for line feed
+                    if (current >= position) {
+                        return lines;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // ignore
+            return -1;
+        }
+
+        return lines;
     }
 
 }

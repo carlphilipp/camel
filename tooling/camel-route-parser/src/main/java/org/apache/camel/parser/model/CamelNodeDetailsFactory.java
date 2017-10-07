@@ -30,4 +30,8 @@ public class CamelNodeDetailsFactory {
     public CamelNodeDetails newNode(CamelNodeDetails parent, String name) {
         return new CamelNodeDetails(parent, name, ++order);
     }
+
+    public CamelNodeDetails copyNode(CamelNodeDetails parent, String name, CamelNodeDetails copoy) {
+        return new CamelNodeDetails(parent, name, ++order, copoy);
+    }
 }
