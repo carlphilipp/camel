@@ -56,15 +56,18 @@ import org.jboss.forge.roaster.model.source.JavaClassSource;
 import org.jboss.forge.roaster.model.source.MethodSource;
 
 /**
- * A Camel Java parser that only depends on the Roaster API.
+ * A Camel Java tree parser that only depends on the Roaster API.
  * <p/>
- * This implementation is lower level details. For a higher level parser see {@link RouteBuilderParser}.
+ * This implement is used for parsing the Camel routes and build a tree structure of the EIP nodes.
+ *
+ * @see CamelJavaParserHelper for parser that can discover endpoints and simple expressions
  */
-// TODO: rename this class
-public final class AdvancedCamelJavaParserHelper {
+public final class CamelJavaTreeParserHelper {
 
     private CamelCatalog camelCatalog = new DefaultCamelCatalog(true);
 
+    // TODO: add support for multiple routes
+    // TODO: rename this method
     public CamelNodeDetails parseCamelRoute(JavaClassSource clazz, String baseDir, String fullyQualifiedFileName,
                                             MethodSource<JavaClassSource> method) {
 

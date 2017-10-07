@@ -17,8 +17,9 @@
 package org.apache.camel.parser.java;
 
 import java.io.File;
+import java.util.List;
 
-import org.apache.camel.parser.AdvancedRouteBuilderParser;
+import org.apache.camel.parser.RouteBuilderParser;
 import org.apache.camel.parser.model.CamelNodeDetails;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.jboss.forge.roaster.Roaster;
@@ -37,13 +38,23 @@ public class RoasterJavaDslTest extends CamelTestSupport {
     }
 
     @Test
-    public void parse() throws Exception {
+    public void parseTree() throws Exception {
         JavaClassSource clazz = (JavaClassSource) Roaster.parse(new File("src/test/java/org/apache/camel/parser/java/MyJavaDslRouteBuilder.java"));
 
-        CamelNodeDetails details = AdvancedRouteBuilderParser.parseRouteBuilder(clazz, ".",
+        List<CamelNodeDetails> list = RouteBuilderParser.parseRouteBuilderTree(clazz, ".",
             "src/test/java/org/apache/camel/parser/java/MyJavaDslRouteBuilder.java",true);
+        assertEquals(1, list.size());
+        CamelNodeDetails details = list.get(0);
+        assertEquals("src/test/java/org/apache/camel/parser/java/MyJavaDslRouteBuilder.java", details.getFileName());
+
         String tree = details.dump(0);
         LOG.info("\n" + tree);
+
+        assertTrue(tree.contains("25\tfrom"));
+        assertTrue(tree.contains("27\t  setHeader"));
+        assertTrue(tree.contains("30\t      toD"));
+        assertTrue(tree.contains("33\t    otherwise"));
+        assertTrue(tree.contains("36\t  to"));
 
         String name = details.getFileName();
         System.out.println(name);
