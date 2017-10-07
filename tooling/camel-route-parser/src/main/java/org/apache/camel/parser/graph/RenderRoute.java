@@ -24,6 +24,10 @@ import javax.imageio.ImageIO;
 
 import org.apache.camel.parser.model.CamelNodeDetails;
 
+/**
+ * @deprecated  experiment to render a route via Java image
+ */
+@Deprecated
 public class RenderRoute {
 
     public static void main(String[] args) {

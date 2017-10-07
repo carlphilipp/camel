@@ -69,6 +69,21 @@ public final class CamelAnnotationsHandler {
         }
     }
 
+    /**
+     * Handles disabling of JMX on Camel contexts based on {@link DisableJmx}.
+     *
+     * @param context the initialized Spring context
+     * @param testClass the test class being executed
+     */
+    public static void handleRouteCoverage(ConfigurableApplicationContext context, Class<?> testClass) {
+        if (testClass.isAnnotationPresent(RouteCoverage.class)) {
+            LOGGER.info("Enabling RouteCoverage");
+            // JMX must be enabled to turn on route coverage
+            System.clearProperty(JmxSystemPropertyKeys.DISABLED);
+            System.setProperty("CamelTestRouteCoverage", "true");
+        }
+    }
+
     public static void handleProvidesBreakpoint(ConfigurableApplicationContext context, Class<?> testClass) throws Exception {
         Collection<Method> methods = getAllMethods(testClass);
         final List<Breakpoint> breakpoints = new LinkedList<Breakpoint>();

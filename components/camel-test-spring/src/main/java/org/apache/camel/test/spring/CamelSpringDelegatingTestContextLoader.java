@@ -77,6 +77,7 @@ public class CamelSpringDelegatingTestContextLoader extends DelegatingSmartConte
         AnnotationConfigUtils.registerAnnotationConfigProcessors((BeanDefinitionRegistry) context);
 
         // Post CamelContext(s) instantiation but pre CamelContext(s) start setup
+        CamelAnnotationsHandler.handleRouteCoverage(context, testClass);
         CamelAnnotationsHandler.handleProvidesBreakpoint(context, testClass);
         CamelAnnotationsHandler.handleShutdownTimeout(context, testClass);
         CamelAnnotationsHandler.handleMockEndpoints(context, testClass);
