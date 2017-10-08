@@ -19,8 +19,8 @@ package org.apache.camel.maven.model;
 public final class CoverageNode {
 
     private String name;
-    private String lineNumber;
-    private Integer count;
+    private int lineNumber;
+    private int count;
     private int level;
 
     public String getName() {
@@ -31,19 +31,19 @@ public final class CoverageNode {
         this.name = name;
     }
 
-    public String getLineNumber() {
+    public int getLineNumber() {
         return lineNumber;
     }
 
-    public void setLineNumber(String lineNumber) {
+    public void setLineNumber(int lineNumber) {
         this.lineNumber = lineNumber;
     }
 
-    public Integer getCount() {
+    public int getCount() {
         return count;
     }
 
-    public void setCount(Integer count) {
+    public void setCount(int count) {
         this.count = count;
     }
 

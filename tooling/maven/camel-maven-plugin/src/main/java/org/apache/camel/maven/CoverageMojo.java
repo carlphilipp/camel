@@ -170,38 +170,39 @@ public class CoverageMojo extends AbstractExecMojo {
             getLog().warn("Discovered " + anonymous + " anonymous routes. Add route ids to these routes for route coverage support");
         }
 
-        routeTrees = routeTrees.stream().filter(t -> t.getRouteId() != null).collect(Collectors.toList());
+        final AtomicInteger notCovered = new AtomicInteger();
 
-        routeTrees.forEach(t -> {
+        routeTrees = routeTrees.stream().filter(t -> t.getRouteId() != null).collect(Collectors.toList());
+        for (CamelNodeDetails t : routeTrees) {
             String routeId = t.getRouteId();
             String fileName = asRelativeFile(t.getFileName());
 
             // grab dump data for the route
             try {
                 List<KeyValueHolder<String, Integer>> coverageData = CoverageHelper.parseDumpRouteCoverageByRouteId("target/camel-route-coverage", routeId);
-
-                List<CoverageNode> coverage = gatherRouteCoverageSummary(t, coverageData);
-
-                String out = templateCoverageData(fileName, routeId, coverage);
-                getLog().info("Route coverage summary:\n\n" + out);
-                getLog().info("");
+                if (coverageData.isEmpty()) {
+                    getLog().warn("No route coverage data found for route: " + routeId
+                        + ". Make sure to enable route coverage in your unit tests and assign unique route ids to your routes. Also remember to run unit tests first.");
+                } else {
+                    List<CoverageNode> coverage = gatherRouteCoverageSummary(t, coverageData);
+                    String out = templateCoverageData(fileName, routeId, coverage, notCovered);
+                    getLog().info("Route coverage summary:\n\n" + out);
+                    getLog().info("");
+                }
 
             } catch (Exception e) {
-                e.printStackTrace();
-                // ignore
+                throw new MojoExecutionException("Error during gathering route coverage data for route: " + routeId, e);
             }
-        });
+        }
 
-        int notCovered = 0;
-
-        if (failOnError && (notCovered > 0)) {
-            throw new MojoExecutionException("Some routes are not fully covered");
+        if (failOnError && notCovered.get() > 0) {
+            throw new MojoExecutionException("There are " + notCovered.get() + " route(s) not fully covered!");
         }
     }
     // CHECKSTYLE:ON
 
     @SuppressWarnings("unchecked")
-    private String templateCoverageData(String fileName, String routeId, List<CoverageNode> model) throws MojoExecutionException {
+    private String templateCoverageData(String fileName, String routeId, List<CoverageNode> model, AtomicInteger notCovered) throws MojoExecutionException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         PrintStream sw = new PrintStream(bos);
 
@@ -218,6 +219,11 @@ public class CoverageMojo extends AbstractExecMojo {
             }
             String pad = padString(node.getLevel());
             sw.println(String.format("%8s   %8s   %s", node.getLineNumber(), node.getCount(), pad + node.getName()));
+        }
+
+        if (covered != model.size()) {
+            // okay here is a route that was not fully covered
+            notCovered.incrementAndGet();
         }
 
         // calculate percentage of route coverage (must use double to have decimals)
@@ -241,7 +247,7 @@ public class CoverageMojo extends AbstractExecMojo {
     private static void gatherRouteCoverageSummary(CamelNodeDetails node, Iterator<KeyValueHolder<String, Integer>> it, AtomicInteger level, List<CoverageNode> answer) {
         CoverageNode data = new CoverageNode();
         data.setName(node.getName());
-        data.setLineNumber(node.getLineNumber());
+        data.setLineNumber(Integer.valueOf(node.getLineNumber()));
         data.setLevel(level.get());
 
         // add data
