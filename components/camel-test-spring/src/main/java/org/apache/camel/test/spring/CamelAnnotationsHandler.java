@@ -78,7 +78,7 @@ public final class CamelAnnotationsHandler {
      * @param testClass the test class being executed
      */
     public static void handleRouteCoverage(ConfigurableApplicationContext context, Class<?> testClass, Function testMethod) throws Exception {
-        if (testClass.isAnnotationPresent(RouteCoverage.class)) {
+        if (testClass.isAnnotationPresent(EnableRouteCoverage.class)) {
             System.setProperty("CamelTestRouteCoverage", "true");
 
             CamelSpringTestHelper.doToSpringCamelContexts(context, new CamelSpringTestHelper.DoToSpringCamelContextsStrategy() {

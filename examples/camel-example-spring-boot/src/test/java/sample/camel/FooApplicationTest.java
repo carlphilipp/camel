@@ -21,20 +21,19 @@ import java.util.concurrent.TimeUnit;
 import org.apache.camel.CamelContext;
 import org.apache.camel.builder.NotifyBuilder;
 import org.apache.camel.test.spring.CamelSpringBootRunner;
-import org.apache.camel.test.spring.RouteCoverage;
+import org.apache.camel.test.spring.EnableRouteCoverage;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Configuration;
 
 import static org.junit.Assert.assertTrue;
 
 @RunWith(CamelSpringBootRunner.class)
 @SpringBootTest(classes = SampleCamelApplication.class,
     properties = "greeting = Hell foo")
-@RouteCoverage
+@EnableRouteCoverage
 @Ignore
 public class FooApplicationTest {
 

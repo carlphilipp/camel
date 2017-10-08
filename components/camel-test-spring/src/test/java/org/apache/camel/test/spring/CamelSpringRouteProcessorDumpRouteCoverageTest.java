@@ -27,7 +27,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-@RouteCoverage
+@EnableRouteCoverage
 public class CamelSpringRouteProcessorDumpRouteCoverageTest extends CamelSpringRunnerPlainTest {
 
     @BeforeClass
