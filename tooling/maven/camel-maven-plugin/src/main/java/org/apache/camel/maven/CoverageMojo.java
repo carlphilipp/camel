@@ -16,19 +16,26 @@
  */
 package org.apache.camel.maven;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import org.apache.camel.maven.helper.CoverageHelper;
 import org.apache.camel.maven.helper.EndpointHelper;
+import org.apache.camel.maven.model.CoverageNode;
 import org.apache.camel.parser.RouteBuilderParser;
 import org.apache.camel.parser.model.CamelEndpointDetails;
 import org.apache.camel.parser.model.CamelNodeDetails;
 import org.apache.camel.parser.model.CamelRouteDetails;
 import org.apache.camel.parser.model.CamelSimpleExpressionDetails;
+import org.apache.camel.util.KeyValueHolder;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -168,10 +175,21 @@ public class CoverageMojo extends AbstractExecMojo {
         routeTrees.forEach(t -> {
             String routeId = t.getRouteId();
             String fileName = asRelativeFile(t.getFileName());
-            String tree = t.dump(4);
 
-            getLog().info("Route " + routeId + " discovered in file " + fileName);
-            getLog().info("\n" + tree + "\n");
+            // grab dump data for the route
+            try {
+                List<KeyValueHolder<String, Integer>> coverageData = CoverageHelper.parseDumpRouteCoverageByRouteId("target/camel-route-coverage", routeId);
+
+                List<CoverageNode> coverage = gatherRouteCoverageSummary(t, coverageData);
+
+                String out = templateCoverageData(fileName, routeId, coverage);
+                getLog().info("Route coverage summary:\n\n" + out);
+                getLog().info("");
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                // ignore
+            }
         });
 
         int notCovered = 0;
@@ -182,14 +200,78 @@ public class CoverageMojo extends AbstractExecMojo {
     }
     // CHECKSTYLE:ON
 
-    private static int countRouteId(List<CamelRouteDetails> details, String routeId) {
-        int answer = 0;
-        for (CamelRouteDetails detail : details) {
-            if (routeId.equals(detail.getRouteId())) {
-                answer++;
+    @SuppressWarnings("unchecked")
+    private String templateCoverageData(String fileName, String routeId, List<CoverageNode> model) throws MojoExecutionException {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        PrintStream sw = new PrintStream(bos);
+
+        sw.println("File: " + fileName);
+        sw.println("Route: " + routeId);
+        sw.println();
+        sw.println(String.format("%8s   %8s   %s", "Line #", "Count", "Route"));
+        sw.println(String.format("%8s   %8s   %s", "------", "-----", "-----"));
+
+        int covered = 0;
+        for (CoverageNode node : model) {
+            if (node.getCount() > 0) {
+                covered++;
+            }
+            String pad = padString(node.getLevel());
+            sw.println(String.format("%8s   %8s   %s", node.getLineNumber(), node.getCount(), pad + node.getName()));
+        }
+
+        // calculate percentage of route coverage (must use double to have decimals)
+        double percentage = ((double) covered / (double) model.size()) * 100;
+        sw.println();
+        sw.println("Coverage: " + covered + " out of " + model.size() + " (" + String.format("%.1f", percentage) + "%)");
+        sw.println();
+
+        return bos.toString();
+    }
+
+    private static List<CoverageNode> gatherRouteCoverageSummary(CamelNodeDetails route, List<KeyValueHolder<String, Integer>> coverageData) {
+        List<CoverageNode> answer = new ArrayList<>();
+
+        Iterator<KeyValueHolder<String, Integer>> it = coverageData.iterator();
+        AtomicInteger level = new AtomicInteger();
+        gatherRouteCoverageSummary(route, it, level, answer);
+        return answer;
+    }
+
+    private static void gatherRouteCoverageSummary(CamelNodeDetails node, Iterator<KeyValueHolder<String, Integer>> it, AtomicInteger level, List<CoverageNode> answer) {
+        CoverageNode data = new CoverageNode();
+        data.setName(node.getName());
+        data.setLineNumber(node.getLineNumber());
+        data.setLevel(level.get());
+
+        // add data
+        answer.add(data);
+
+        // find count
+        boolean found = false;
+        while (!found && it.hasNext()) {
+            KeyValueHolder<String, Integer> holder = it.next();
+            found = holder.getKey().equals(node.getName());
+            if (found) {
+                data.setCount(holder.getValue());
             }
         }
-        return answer;
+
+        if (node.getOutputs() != null) {
+            level.addAndGet(1);
+            for (CamelNodeDetails child : node.getOutputs()) {
+                gatherRouteCoverageSummary(child, it, level, answer);
+            }
+            level.addAndGet(-1);
+        }
+    }
+
+    private static String padString(int level) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < level; i++) {
+            sb.append("  ");
+        }
+        return sb.toString();
     }
 
     private void findJavaFiles(File dir, Set<File> javaFiles) {
