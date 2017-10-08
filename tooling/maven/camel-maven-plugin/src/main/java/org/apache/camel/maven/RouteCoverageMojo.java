@@ -27,9 +27,9 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import org.apache.camel.maven.helper.CoverageHelper;
+import org.apache.camel.maven.helper.RouteCoverageHelper;
 import org.apache.camel.maven.helper.EndpointHelper;
-import org.apache.camel.maven.model.CoverageNode;
+import org.apache.camel.maven.model.RouteCoverageNode;
 import org.apache.camel.parser.RouteBuilderParser;
 import org.apache.camel.parser.model.CamelEndpointDetails;
 import org.apache.camel.parser.model.CamelNodeDetails;
@@ -48,10 +48,10 @@ import org.jboss.forge.roaster.model.source.JavaClassSource;
 /**
  * Performs route coverage reports after running Camel unit tests with camel-test modules
  *
- * @goal coverage
+ * @goal route-coverage
  * @threadSafe
  */
-public class CoverageMojo extends AbstractExecMojo {
+public class RouteCoverageMojo extends AbstractExecMojo {
 
     /**
      * The maven project.
@@ -179,12 +179,12 @@ public class CoverageMojo extends AbstractExecMojo {
 
             // grab dump data for the route
             try {
-                List<KeyValueHolder<String, Integer>> coverageData = CoverageHelper.parseDumpRouteCoverageByRouteId("target/camel-route-coverage", routeId);
+                List<KeyValueHolder<String, Integer>> coverageData = RouteCoverageHelper.parseDumpRouteCoverageByRouteId("target/camel-route-coverage", routeId);
                 if (coverageData.isEmpty()) {
                     getLog().warn("No route coverage data found for route: " + routeId
                         + ". Make sure to enable route coverage in your unit tests and assign unique route ids to your routes. Also remember to run unit tests first.");
                 } else {
-                    List<CoverageNode> coverage = gatherRouteCoverageSummary(t, coverageData);
+                    List<RouteCoverageNode> coverage = gatherRouteCoverageSummary(t, coverageData);
                     String out = templateCoverageData(fileName, routeId, coverage, notCovered);
                     getLog().info("Route coverage summary:\n\n" + out);
                     getLog().info("");
@@ -202,7 +202,7 @@ public class CoverageMojo extends AbstractExecMojo {
     // CHECKSTYLE:ON
 
     @SuppressWarnings("unchecked")
-    private String templateCoverageData(String fileName, String routeId, List<CoverageNode> model, AtomicInteger notCovered) throws MojoExecutionException {
+    private String templateCoverageData(String fileName, String routeId, List<RouteCoverageNode> model, AtomicInteger notCovered) throws MojoExecutionException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         PrintStream sw = new PrintStream(bos);
 
@@ -213,7 +213,7 @@ public class CoverageMojo extends AbstractExecMojo {
         sw.println(String.format("%8s   %8s   %s", "------", "-----", "-----"));
 
         int covered = 0;
-        for (CoverageNode node : model) {
+        for (RouteCoverageNode node : model) {
             if (node.getCount() > 0) {
                 covered++;
             }
@@ -235,8 +235,8 @@ public class CoverageMojo extends AbstractExecMojo {
         return bos.toString();
     }
 
-    private static List<CoverageNode> gatherRouteCoverageSummary(CamelNodeDetails route, List<KeyValueHolder<String, Integer>> coverageData) {
-        List<CoverageNode> answer = new ArrayList<>();
+    private static List<RouteCoverageNode> gatherRouteCoverageSummary(CamelNodeDetails route, List<KeyValueHolder<String, Integer>> coverageData) {
+        List<RouteCoverageNode> answer = new ArrayList<>();
 
         Iterator<KeyValueHolder<String, Integer>> it = coverageData.iterator();
         AtomicInteger level = new AtomicInteger();
@@ -244,8 +244,8 @@ public class CoverageMojo extends AbstractExecMojo {
         return answer;
     }
 
-    private static void gatherRouteCoverageSummary(CamelNodeDetails node, Iterator<KeyValueHolder<String, Integer>> it, AtomicInteger level, List<CoverageNode> answer) {
-        CoverageNode data = new CoverageNode();
+    private static void gatherRouteCoverageSummary(CamelNodeDetails node, Iterator<KeyValueHolder<String, Integer>> it, AtomicInteger level, List<RouteCoverageNode> answer) {
+        RouteCoverageNode data = new RouteCoverageNode();
         data.setName(node.getName());
         data.setLineNumber(Integer.valueOf(node.getLineNumber()));
         data.setLevel(level.get());

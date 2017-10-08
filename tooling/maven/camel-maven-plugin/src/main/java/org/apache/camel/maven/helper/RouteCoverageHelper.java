@@ -33,9 +33,9 @@ import org.apache.camel.util.IOHelper;
 import org.apache.camel.util.KeyValueHolder;
 import org.apache.camel.util.XmlLineNumberParser;
 
-public final class CoverageHelper {
+public final class RouteCoverageHelper {
 
-    private CoverageHelper() {
+    private RouteCoverageHelper() {
     }
 
     public static List<KeyValueHolder<String, Integer>> parseDumpRouteCoverageByRouteId(String directory, String routeId) throws Exception {

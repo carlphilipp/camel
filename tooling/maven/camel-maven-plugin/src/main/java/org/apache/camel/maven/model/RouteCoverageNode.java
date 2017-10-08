@@ -16,7 +16,7 @@
  */
 package org.apache.camel.maven.model;
 
-public final class CoverageNode {
+public final class RouteCoverageNode {
 
     private String name;
     private int lineNumber;
