@@ -1,0 +1,21 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+         http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+  <camelContext id="SampleCamel" xmlns="http://camel.apache.org/schema/spring">
+    <route id="hello">
+      <from uri="timer:hello?period={{timer.period}}"/>
+      <transform>
+        <method ref="myBean" method="saySomething"/>
+      </transform>
+      <filter>
+        <simple>${body} contains 'foo'</simple>
+        <to uri="log:foo"/>
+      </filter>
+      <to uri="stream:out"/>
+    </route>
+  </camelContext>
+
+</beans>

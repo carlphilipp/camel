@@ -18,6 +18,8 @@ package org.apache.camel.maven;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -27,14 +29,12 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import org.apache.camel.maven.helper.RouteCoverageHelper;
 import org.apache.camel.maven.helper.EndpointHelper;
+import org.apache.camel.maven.helper.RouteCoverageHelper;
 import org.apache.camel.maven.model.RouteCoverageNode;
 import org.apache.camel.parser.RouteBuilderParser;
-import org.apache.camel.parser.model.CamelEndpointDetails;
+import org.apache.camel.parser.XmlRouteParser;
 import org.apache.camel.parser.model.CamelNodeDetails;
-import org.apache.camel.parser.model.CamelRouteDetails;
-import org.apache.camel.parser.model.CamelSimpleExpressionDetails;
 import org.apache.camel.util.KeyValueHolder;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -98,9 +98,6 @@ public class RouteCoverageMojo extends AbstractExecMojo {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
 
-        List<CamelEndpointDetails> endpoints = new ArrayList<>();
-        List<CamelSimpleExpressionDetails> simpleExpressions = new ArrayList<>();
-        List<CamelRouteDetails> routeIds = new ArrayList<>();
         Set<File> javaFiles = new LinkedHashSet<File>();
         Set<File> xmlFiles = new LinkedHashSet<File>();
 
@@ -135,7 +132,6 @@ public class RouteCoverageMojo extends AbstractExecMojo {
         for (File file : javaFiles) {
             if (matchFile(file)) {
                 try {
-
                     // parse the java source code and find Camel RouteBuilder classes
                     String fqn = file.getPath();
                     String baseDir = ".";
@@ -154,7 +150,13 @@ public class RouteCoverageMojo extends AbstractExecMojo {
         for (File file : xmlFiles) {
             if (matchFile(file)) {
                 try {
-                    // TODO: implement me
+                    // parse the xml files code and find Camel routes
+                    String fqn = file.getPath();
+                    String baseDir = ".";
+                    InputStream is = new FileInputStream(file);
+                    List<CamelNodeDetails> result = XmlRouteParser.parseXmlRouteTree(is, baseDir, fqn);
+                    routeTrees.addAll(result);
+                    is.close();
                 } catch (Exception e) {
                     getLog().warn("Error parsing xml file " + file + " code due " + e.getMessage(), e);
                 }
@@ -402,16 +404,4 @@ public class RouteCoverageMojo extends AbstractExecMojo {
         return name;
     }
 
-    private static String asPackageName(String name) {
-        return name.replace(File.separator, ".");
-    }
-
-    private static String asSimpleClassName(String className) {
-        int dot = className.lastIndexOf('.');
-        if (dot > 0) {
-            return className.substring(dot + 1);
-        } else {
-            return className;
-        }
-    }
 }
