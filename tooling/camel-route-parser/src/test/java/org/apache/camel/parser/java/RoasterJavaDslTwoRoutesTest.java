@@ -51,7 +51,11 @@ public class RoasterJavaDslTwoRoutesTest extends CamelTestSupport {
         assertEquals("src/test/java/org/apache/camel/parser/java/TwoRoutesRouteBuilder.java", details2.getFileName());
 
         assertEquals("foo", details.getRouteId());
+        assertEquals("org.apache.camel.parser.java.TwoRoutesRouteBuilder", details.getClassName());
+        assertEquals("configure", details.getMethodName());
         assertEquals("bar", details2.getRouteId());
+        assertEquals("configure", details2.getMethodName());
+        assertEquals("org.apache.camel.parser.java.TwoRoutesRouteBuilder", details2.getClassName());
 
         String tree = details.dump(0);
         LOG.info("\n" + tree);

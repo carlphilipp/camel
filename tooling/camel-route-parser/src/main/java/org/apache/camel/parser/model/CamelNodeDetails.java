@@ -26,6 +26,10 @@ public class CamelNodeDetails {
     private String lineNumber;
     private String lineNumberEnd;
 
+    // java source code details
+    private String className;
+    private String methodName;
+
     // camel node details
     private final CamelNodeDetails parent;
     private final String name;
@@ -41,6 +45,8 @@ public class CamelNodeDetails {
         this.fileName = copy.getFileName();
         this.lineNumber = copy.getLineNumber();
         this.lineNumberEnd = copy.getLineNumberEnd();
+        this.className = copy.getClassName();
+        this.methodName = copy.getMethodName();
     }
 
     public CamelNodeDetails(CamelNodeDetails parent, String name, int order) {
@@ -110,6 +116,22 @@ public class CamelNodeDetails {
 
     public void setLineNumberEnd(String lineNumberEnd) {
         this.lineNumberEnd = lineNumberEnd;
+    }
+
+    public String getClassName() {
+        return className;
+    }
+
+    public void setClassName(String className) {
+        this.className = className;
+    }
+
+    public String getMethodName() {
+        return methodName;
+    }
+
+    public void setMethodName(String methodName) {
+        this.methodName = methodName;
     }
 
     public String toString() {

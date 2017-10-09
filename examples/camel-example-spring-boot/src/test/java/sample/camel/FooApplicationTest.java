@@ -32,9 +32,9 @@ import static org.junit.Assert.assertTrue;
 
 @RunWith(CamelSpringBootRunner.class)
 @SpringBootTest(classes = SampleCamelApplication.class,
-    properties = "greeting = Hell foo")
+    properties = "greeting = Hello foo")
 @EnableRouteCoverage
-@Ignore // enable me to run this test as well so we can cover testing the route completely
+//@Ignore // enable me to run this test as well so we can cover testing the route completely
 public class FooApplicationTest {
 
     @Autowired

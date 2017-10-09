@@ -47,6 +47,8 @@ public class RoasterJavaDslTest extends CamelTestSupport {
         CamelNodeDetails details = list.get(0);
         assertEquals("src/test/java/org/apache/camel/parser/java/MyJavaDslRouteBuilder.java", details.getFileName());
         assertEquals("bar", details.getRouteId());
+        assertEquals("configure", details.getMethodName());
+        assertEquals("org.apache.camel.parser.java.MyJavaDslRouteBuilder", details.getClassName());
 
         String tree = details.dump(0);
         LOG.info("\n" + tree);

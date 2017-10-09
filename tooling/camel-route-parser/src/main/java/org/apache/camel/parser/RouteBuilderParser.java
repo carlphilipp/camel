@@ -59,7 +59,7 @@ public final class RouteBuilderParser {
      * @return a list of route model (tree) of each discovered route
      */
     public static List<CamelNodeDetails> parseRouteBuilderTree(JavaClassSource clazz, String baseDir, String fullyQualifiedFileName,
-                                                         boolean includeInlinedRouteBuilders) {
+                                                               boolean includeInlinedRouteBuilders) {
 
         List<MethodSource<JavaClassSource>> methods = new ArrayList<>();
         MethodSource<JavaClassSource> method = CamelJavaParserHelper.findConfigureMethod(clazz);

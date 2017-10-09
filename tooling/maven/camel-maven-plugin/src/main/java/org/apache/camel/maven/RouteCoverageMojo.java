@@ -206,8 +206,12 @@ public class RouteCoverageMojo extends AbstractExecMojo {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         PrintStream sw = new PrintStream(bos);
 
-        sw.println("File: " + fileName);
-        sw.println("Route: " + routeId);
+        if (model.get(0).getClassName() != null) {
+            sw.println("Class:\t" + model.get(0).getClassName());
+        } else {
+            sw.println("File:\t" + fileName);
+        }
+        sw.println("RouteId:\t" + routeId);
         sw.println();
         sw.println(String.format("%8s   %8s   %s", "Line #", "Count", "Route"));
         sw.println(String.format("%8s   %8s   %s", "------", "-----", "-----"));
@@ -249,6 +253,8 @@ public class RouteCoverageMojo extends AbstractExecMojo {
         data.setName(node.getName());
         data.setLineNumber(Integer.valueOf(node.getLineNumber()));
         data.setLevel(level.get());
+        data.setClassName(node.getClassName());
+        data.setMethodName(node.getMethodName());
 
         // add data
         answer.add(data);

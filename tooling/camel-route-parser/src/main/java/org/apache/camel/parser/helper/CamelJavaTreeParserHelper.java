@@ -64,18 +64,18 @@ import org.jboss.forge.roaster.model.source.MethodSource;
  */
 public final class CamelJavaTreeParserHelper {
 
-    private CamelCatalog camelCatalog = new DefaultCamelCatalog(true);
+    private final CamelCatalog camelCatalog = new DefaultCamelCatalog(true);
 
     public List<CamelNodeDetails> parseCamelRouteTree(JavaClassSource clazz, String baseDir, String fullyQualifiedFileName,
-                                                      MethodSource<JavaClassSource> method) {
+                                                      MethodSource<JavaClassSource> configureMethod) {
 
         // find any from which is the start of the route
         CamelNodeDetailsFactory nodeFactory = CamelNodeDetailsFactory.newInstance();
 
         CamelNodeDetails route = nodeFactory.newNode(null, "route");
 
-        if (method != null) {
-            MethodDeclaration md = (MethodDeclaration) method.getInternal();
+        if (configureMethod != null) {
+            MethodDeclaration md = (MethodDeclaration) configureMethod.getInternal();
             Block block = md.getBody();
             if (block != null) {
                 for (Object statement : md.getBody().statements()) {
@@ -83,7 +83,7 @@ public final class CamelJavaTreeParserHelper {
                     if (statement instanceof ExpressionStatement) {
                         ExpressionStatement es = (ExpressionStatement) statement;
                         Expression exp = es.getExpression();
-                        parseExpression(nodeFactory, fullyQualifiedFileName, clazz, block, exp, route);
+                        parseExpression(nodeFactory, fullyQualifiedFileName, clazz, configureMethod, block, exp, route);
                     }
                 }
             }
@@ -183,21 +183,23 @@ public final class CamelJavaTreeParserHelper {
     }
 
     private void parseExpression(CamelNodeDetailsFactory nodeFactory, String fullyQualifiedFileName,
-                                 JavaClassSource clazz, Block block, Expression exp, CamelNodeDetails node) {
+                                 JavaClassSource clazz, MethodSource<JavaClassSource> configureMethod, Block block,
+                                 Expression exp, CamelNodeDetails node) {
         if (exp == null) {
             return;
         }
         if (exp instanceof MethodInvocation) {
             MethodInvocation mi = (MethodInvocation) exp;
-            node = doParseCamelModels(nodeFactory, fullyQualifiedFileName, clazz, block, mi, node);
+            node = doParseCamelModels(nodeFactory, fullyQualifiedFileName, clazz, configureMethod, block, mi, node);
             // if the method was called on another method, then recursive
             exp = mi.getExpression();
-            parseExpression(nodeFactory, fullyQualifiedFileName, clazz, block, exp, node);
+            parseExpression(nodeFactory, fullyQualifiedFileName, clazz, configureMethod, block, exp, node);
         }
     }
 
     private CamelNodeDetails doParseCamelModels(CamelNodeDetailsFactory nodeFactory, String fullyQualifiedFileName,
-                                                JavaClassSource clazz, Block block, MethodInvocation mi, CamelNodeDetails node) {
+                                                JavaClassSource clazz, MethodSource<JavaClassSource> configureMethod, Block block,
+                                                MethodInvocation mi, CamelNodeDetails node) {
         String name = mi.getName().getIdentifier();
 
         // special for Java DSL having some endXXX
@@ -215,6 +217,9 @@ public final class CamelJavaTreeParserHelper {
                 newNode.setLineNumber("" + line);
             }
             newNode.setFileName(fullyQualifiedFileName);
+
+            newNode.setClassName(clazz.getQualifiedName());
+            newNode.setMethodName(configureMethod.getName());
 
             if (isRouteId) {
                 // grab the route id

@@ -18,10 +18,29 @@ package org.apache.camel.maven.model;
 
 public final class RouteCoverageNode {
 
+    private String className;
+    private String methodName;
+
     private String name;
     private int lineNumber;
     private int count;
     private int level;
+
+    public String getClassName() {
+        return className;
+    }
+
+    public void setClassName(String className) {
+        this.className = className;
+    }
+
+    public String getMethodName() {
+        return methodName;
+    }
+
+    public void setMethodName(String methodName) {
+        this.methodName = methodName;
+    }
 
     public String getName() {
         return name;
