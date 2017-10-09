@@ -42,7 +42,7 @@ public class XmlParseTreeTest {
 
         assertEquals(1, list.size());
         CamelNodeDetails details = list.get(0);
-        assertEquals("org/apache/camel/camel/parser/xml/mycamel.xml", details.getFileName());
+        assertEquals("src/test/resources/org/apache/camel/camel/parser/xml/mycamel.xml", details.getFileName());
         assertEquals("myRoute", details.getRouteId());
         assertEquals(null, details.getMethodName());
         assertEquals(null, details.getClassName());
@@ -50,8 +50,7 @@ public class XmlParseTreeTest {
         String tree = details.dump(0);
         LOG.info("\n" + tree);
 
-        assertTrue(tree.contains("29\troute"));
-        assertTrue(tree.contains("32\t  from"));
+        assertTrue(tree.contains("32\tfrom"));
         assertTrue(tree.contains("35\t  transform"));
         assertTrue(tree.contains("36\t    simple"));
         assertTrue(tree.contains("39\t  to"));
