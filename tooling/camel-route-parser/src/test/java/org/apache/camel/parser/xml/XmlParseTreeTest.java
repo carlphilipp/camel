@@ -52,7 +52,6 @@ public class XmlParseTreeTest {
 
         assertTrue(tree.contains("32\tfrom"));
         assertTrue(tree.contains("35\t  transform"));
-        assertTrue(tree.contains("36\t    simple"));
         assertTrue(tree.contains("39\t  to"));
     }
 

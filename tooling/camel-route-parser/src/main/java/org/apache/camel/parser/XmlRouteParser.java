@@ -70,6 +70,8 @@ public final class XmlRouteParser {
             // find any from which is the start of the route
             CamelNodeDetailsFactory nodeFactory = CamelNodeDetailsFactory.newInstance();
 
+            CamelXmlTreeParserHelper parser = new CamelXmlTreeParserHelper();
+
             List<Node> routes = CamelXmlHelper.findAllRoutes(dom);
             for (Node route : routes) {
                 // parse each route and build
@@ -90,7 +92,7 @@ public final class XmlRouteParser {
                 node.setLineNumberEnd(lineNumberEnd);
 
                 // parse the route and gather all its EIPs
-                List<CamelNodeDetails> tree = CamelXmlTreeParserHelper.parseCamelRouteTree(route, routeId, node, baseDir, fullyQualifiedFileName);
+                List<CamelNodeDetails> tree = parser.parseCamelRouteTree(route, routeId, node, baseDir, fullyQualifiedFileName);
                 answer.addAll(tree);
             }
         }

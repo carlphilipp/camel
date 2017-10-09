@@ -247,6 +247,10 @@ public class RouteCoverageMojo extends AbstractExecMojo {
         Iterator<KeyValueHolder<String, Integer>> it = coverageData.iterator();
         AtomicInteger level = new AtomicInteger();
         gatherRouteCoverageSummary(route, it, level, answer);
+
+        // walk again and remove all from route that are not in coverage data as they are not part of the Camel route (expression, configurations etc)
+        it = coverageData.iterator();
+
         return answer;
     }
 

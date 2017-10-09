@@ -18,7 +18,11 @@ package org.apache.camel.parser.helper;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import org.apache.camel.catalog.CamelCatalog;
+import org.apache.camel.catalog.DefaultCamelCatalog;
+import org.apache.camel.catalog.JSonSchemaHelper;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -27,10 +31,9 @@ import org.apache.camel.parser.model.CamelNodeDetailsFactory;
 
 public final class CamelXmlTreeParserHelper {
 
-    private CamelXmlTreeParserHelper() {
-    }
+    private final CamelCatalog camelCatalog = new DefaultCamelCatalog(true);
 
-    public static List<CamelNodeDetails> parseCamelRouteTree(Node xmlNode, String routeId, CamelNodeDetails route,
+    public List<CamelNodeDetails> parseCamelRouteTree(Node xmlNode, String routeId, CamelNodeDetails route,
                                                              String baseDir, String fullyQualifiedFileName) {
 
         CamelNodeDetailsFactory nodeFactory = CamelNodeDetailsFactory.newInstance();
@@ -63,21 +66,29 @@ public final class CamelXmlTreeParserHelper {
         return answer;
     }
 
-    private static void walkXmlTree(CamelNodeDetailsFactory nodeFactory, Node node, CamelNodeDetails parent) {
+    private void walkXmlTree(CamelNodeDetailsFactory nodeFactory, Node node, CamelNodeDetails parent) {
         CamelNodeDetails newNode = null;
 
         String name = node.getNodeName();
-        // skip route as we just keep from
-        if (!"route".equals(name)) {
-            String lineNumber = (String) node.getUserData(XmlLineNumberParser.LINE_NUMBER);
-            String lineNumberEnd = (String) node.getUserData(XmlLineNumberParser.LINE_NUMBER_END);
-            newNode = nodeFactory.newNode(parent, name);
-            newNode.setRouteId(parent.getRouteId());
-            newNode.setFileName(parent.getFileName());
-            newNode.setLineNumber(lineNumber);
-            newNode.setLineNumberEnd(lineNumberEnd);
 
-            parent.addOutput(newNode);
+        boolean isRoute = "route".equals(name) || "from".equals(name);
+        // must be an eip model that has either input or output as we only want to track processors (also accept from)
+        boolean isEip = camelCatalog.findModelNames().contains(name) && (hasInput(name) || hasOutput(name));
+
+        // only include if its a known Camel model (dont include languages)
+        if (isRoute || isEip) {
+            // skip route as we just keep from
+            if (!"route".equals(name)) {
+                String lineNumber = (String) node.getUserData(XmlLineNumberParser.LINE_NUMBER);
+                String lineNumberEnd = (String) node.getUserData(XmlLineNumberParser.LINE_NUMBER_END);
+                newNode = nodeFactory.newNode(parent, name);
+                newNode.setRouteId(parent.getRouteId());
+                newNode.setFileName(parent.getFileName());
+                newNode.setLineNumber(lineNumber);
+                newNode.setLineNumberEnd(lineNumberEnd);
+
+                parent.addOutput(newNode);
+            }
         }
 
         NodeList children = node.getChildNodes();
@@ -88,6 +99,36 @@ public final class CamelXmlTreeParserHelper {
             }
         }
 
+    }
+
+    private boolean hasOutput(String name) {
+        String json = camelCatalog.modelJSonSchema(name);
+        List<Map<String, String>> rows = JSonSchemaHelper.parseJsonSchema("model", json, false);
+        return isModelOutput(rows);
+    }
+
+    private static boolean isModelOutput(List<Map<String, String>> rows) {
+        for (Map<String, String> row : rows) {
+            if (row.containsKey("output")) {
+                return "true".equals(row.get("output"));
+            }
+        }
+        return false;
+    }
+
+    private boolean hasInput(String name) {
+        String json = camelCatalog.modelJSonSchema(name);
+        List<Map<String, String>> rows = JSonSchemaHelper.parseJsonSchema("model", json, false);
+        return isModelInput(rows);
+    }
+
+    private static boolean isModelInput(List<Map<String, String>> rows) {
+        for (Map<String, String> row : rows) {
+            if (row.containsKey("input")) {
+                return "true".equals(row.get("input"));
+            }
+        }
+        return false;
     }
 
 }

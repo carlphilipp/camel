@@ -30,7 +30,7 @@ public class SampleCamelRouter extends RouteBuilder {
     @Override
     public void configure() throws Exception {
         from("timer:hello?period={{timer.period}}").routeId("hello")
-                .transform(method("myBean", "saySomething"))
+                .transform().method("myBean", "saySomething")
                 .filter(simple("${body} contains 'foo'"))
                     .to("log:foo")
                 .end()

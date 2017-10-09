@@ -171,6 +171,21 @@ public final class CamelJavaTreeParserHelper {
         return false;
     }
 
+    private boolean hasInput(String name) {
+        String json = camelCatalog.modelJSonSchema(name);
+        List<Map<String, String>> rows = JSonSchemaHelper.parseJsonSchema("model", json, false);
+        return isModelInput(rows);
+    }
+
+    private static boolean isModelInput(List<Map<String, String>> rows) {
+        for (Map<String, String> row : rows) {
+            if (row.containsKey("input")) {
+                return "true".equals(row.get("input"));
+            }
+        }
+        return false;
+    }
+
     private static CamelNodeDetails grandParent(CamelNodeDetails node, String parentName) {
         if (node == null) {
             return null;
@@ -203,11 +218,13 @@ public final class CamelJavaTreeParserHelper {
         String name = mi.getName().getIdentifier();
 
         // special for Java DSL having some endXXX
-        boolean isEnd = "end".equals(name) || "endChoice".equals(name) || "endDoTry".equals(name);
-        boolean isRouteId = "routeId".equals(name);
+        boolean isEnd = "end".equals(name) || "endChoice".equals(name) || "endDoTry".equals(name) || "endHystrix".equals(name) || "endParent".equals(name) || "endRest".equals(name);
+        boolean isRoute = "route".equals(name) || "from".equals(name) || "routeId".equals(name);
+        // must be an eip model that has either input or output as we only want to track processors (also accept from)
+        boolean isEip = camelCatalog.findModelNames().contains(name) && (hasInput(name) || hasOutput(name));
 
-        // only include if its a known Camel model
-        if (isEnd || isRouteId || camelCatalog.findModelNames().contains(name)) {
+        // only include if its a known Camel model (dont include languages)
+        if (isEnd || isRoute || isEip) {
             CamelNodeDetails newNode = nodeFactory.newNode(node, name);
 
             // include source code details
@@ -221,7 +238,7 @@ public final class CamelJavaTreeParserHelper {
             newNode.setClassName(clazz.getQualifiedName());
             newNode.setMethodName(configureMethod.getName());
 
-            if (isRouteId) {
+            if ("routeId".equals(name)) {
                 // grab the route id
                 List args = mi.arguments();
                 if (args != null && args.size() > 0) {
