@@ -38,6 +38,9 @@ public final class RouteCoverageHelper {
     private RouteCoverageHelper() {
     }
 
+    // TODO: improve this api what is returned
+    // TODO: move this to camel-route-parser
+
     public static List<KeyValueHolder<String, Integer>> parseDumpRouteCoverageByRouteId(String directory, String routeId) throws Exception {
         List<KeyValueHolder<String, Integer>> answer = new ArrayList<>();
 
