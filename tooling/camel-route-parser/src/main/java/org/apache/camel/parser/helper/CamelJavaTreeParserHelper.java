@@ -106,9 +106,6 @@ public final class CamelJavaTreeParserHelper {
             CamelNodeDetails node = route.getOutputs().get(i);
             String name = node.getName();
 
-            // TODO: use camel catalog to know about these types and when to do what
-            // special for some EIPs such as choice
-
             if ("from".equals(name)) {
                 CamelNodeDetails from = nodeFactory.copyNode(null, "from", node);
                 from.setFileName(fullyQualifiedFileName);
@@ -117,27 +114,20 @@ public final class CamelJavaTreeParserHelper {
             } else if ("routeId".equals(name)) {
                 // should be set on the parent
                 parent.setRouteId(node.getRouteId());
-            } else if ("choice".equals(name)) {
-                CamelNodeDetails output = nodeFactory.copyNode(parent, name, node);
-                parent.addOutput(output);
-                parent = output;
-            } else if ("when".equals(name)) {
-                parent = grandParent(parent, "choice");
-                CamelNodeDetails output = nodeFactory.copyNode(parent, name, node);
-                parent.addOutput(output);
-                parent = output;
-            } else if ("otherwise".equals(name)) {
-                parent = grandParent(parent, "choice");
-                CamelNodeDetails output = nodeFactory.copyNode(parent, name, node);
-                parent.addOutput(output);
-                parent = output;
-            } else if ("end".equals(name) || "endChoice".equals(name) || "endDoTry".equals(name)) {
-                // special for ending otherwise, as we end it automatic in Java DSL so do a double end then
-                if ("otherwise".equals(parent.getName())) {
-                    parent = parent.getParent();
-                }
+            } else if ("end".equals(name) || "endChoice".equals(name) || "endParent".equals(name) || "endRest".equals(name)
+                    || "endDoTry".equals(name) || "endHystrix".equals(name)) {
                 // parent should be grand parent
                 parent = parent.getParent();
+            } else if ("choice".equals(name)) {
+                // special for some EIPs
+                CamelNodeDetails output = nodeFactory.copyNode(parent, name, node);
+                parent.addOutput(output);
+                parent = output;
+            } else if ("when".equals(name) || "otherwise".equals(name)) {
+                // we are in a choice block so parent should be the first choice up the parent tree
+                while (!parent.getName().equals("from") && !"choice".equals(parent.getName())) {
+                    parent = parent.getParent();
+                }
             } else {
                 boolean hasOutput = hasOutput(name);
                 if (hasOutput) {
