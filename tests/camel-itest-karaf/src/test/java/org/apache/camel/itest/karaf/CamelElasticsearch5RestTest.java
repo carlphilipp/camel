@@ -14,18 +14,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.velocity;
+package org.apache.camel.itest.karaf;
 
-import org.apache.camel.builder.RouteBuilder;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.ops4j.pax.exam.junit.PaxExam;
 
-public class VelocityLetterWithPaserTest extends VelocityLetterTest {
-    protected RouteBuilder createRouteBuilder() throws Exception {
-        return new RouteBuilder() {
-            public void configure() throws Exception {                
-                from("direct:a").
-                    to("velocity:org/apache/camel/component/velocity/letterWithParser.vm?propertiesFile=org/apache/camel/component/velocity/velocity.properties").to("mock:result");
-            }
-        };
+@RunWith(PaxExam.class)
+public class CamelElasticsearch5RestTest extends BaseKarafTest {
+
+    public static final String COMPONENT = extractName(CamelElasticsearch5RestTest.class);
+
+    @Test
+    public void test() throws Exception {
+        testComponent(COMPONENT);
     }
 
 }

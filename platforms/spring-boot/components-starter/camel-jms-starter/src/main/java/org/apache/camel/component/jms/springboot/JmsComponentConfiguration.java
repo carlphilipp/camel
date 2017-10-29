@@ -599,6 +599,16 @@ public class JmsComponentConfiguration
      */
     private String subscriptionName;
     /**
+     * Sets whether StreamMessage type is enabled or not. Message payloads of
+     * streaming kind such as files InputStream etc will either by sent as
+     * BytesMessage or StreamMessage. This option controls which kind will be
+     * used. By default BytesMessage is used which enforces the entire message
+     * payload to be read into memory. By enabling this option the message
+     * payload is read into memory in chunks and each chunk is then written to
+     * the StreamMessage until no more data.
+     */
+    private Boolean streamMessageTypeEnabled = false;
+    /**
      * To use a custom org.apache.camel.spi.HeaderFilterStrategy to filter
      * header to and from Camel message.
      */
@@ -1233,6 +1243,14 @@ public class JmsComponentConfiguration
         this.subscriptionName = subscriptionName;
     }
 
+    public Boolean getStreamMessageTypeEnabled() {
+        return streamMessageTypeEnabled;
+    }
+
+    public void setStreamMessageTypeEnabled(Boolean streamMessageTypeEnabled) {
+        this.streamMessageTypeEnabled = streamMessageTypeEnabled;
+    }
+
     public HeaderFilterStrategy getHeaderFilterStrategy() {
         return headerFilterStrategy;
     }
@@ -1553,13 +1571,14 @@ public class JmsComponentConfiguration
          */
         private Boolean eagerLoadingOfProperties = false;
         /**
-         * If true, a producer will behave like a InOnly exchange with the
-         * exception that JMSReplyTo header is sent out and not be suppressed
-         * like in the case of InOnly. Like InOnly the producer will not wait
-         * for a reply. A consumer with this flag will behave like InOnly. This
-         * feature can be used to bridge InOut requests to another queue so that
-         * a route on the other queue will send its response directly back to
-         * the original JMSReplyTo.
+         * Specifies whether Camel ignores the JMSReplyTo header in messages. If
+         * true, Camel does not send a reply back to the destination specified
+         * in the JMSReplyTo header. You can use this option if you want Camel
+         * to consume from a route and you do not want Camel to automatically
+         * send back a reply message because another component in your code
+         * handles the reply message. You can also use this option if you want
+         * to use Camel as a proxy between different message brokers and you
+         * want to route message from one system to another.
          */
         private Boolean disableReplyTo = false;
         /**
@@ -1917,6 +1936,16 @@ public class JmsComponentConfiguration
          * for a shared subscription (which requires JMS 2.0).
          */
         private String subscriptionName;
+        /**
+         * Sets whether StreamMessage type is enabled or not. Message payloads
+         * of streaming kind such as files, InputStream, etc will either by sent
+         * as BytesMessage or StreamMessage. This option controls which kind
+         * will be used. By default BytesMessage is used which enforces the
+         * entire message payload to be read into memory. By enabling this
+         * option the message payload is read into memory in chunks and each
+         * chunk is then written to the StreamMessage until no more data.
+         */
+        private Boolean streamMessageTypeEnabled = false;
 
         public ConsumerType getConsumerType() {
             return consumerType;
@@ -2662,6 +2691,14 @@ public class JmsComponentConfiguration
 
         public void setSubscriptionName(String subscriptionName) {
             this.subscriptionName = subscriptionName;
+        }
+
+        public Boolean getStreamMessageTypeEnabled() {
+            return streamMessageTypeEnabled;
+        }
+
+        public void setStreamMessageTypeEnabled(Boolean streamMessageTypeEnabled) {
+            this.streamMessageTypeEnabled = streamMessageTypeEnabled;
         }
     }
 }

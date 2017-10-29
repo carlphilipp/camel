@@ -46,6 +46,7 @@ import io.swagger.models.parameters.QueryParameter;
 import io.swagger.models.parameters.SerializableParameter;
 import io.swagger.models.properties.ArrayProperty;
 import io.swagger.models.properties.BooleanProperty;
+import io.swagger.models.properties.ByteArrayProperty;
 import io.swagger.models.properties.DoubleProperty;
 import io.swagger.models.properties.FloatProperty;
 import io.swagger.models.properties.IntegerProperty;
@@ -503,7 +504,32 @@ public class RestSwaggerReader {
 
         String ref = modelTypeAsRef(typeName, swagger);
 
-        Property prop = ref != null ? new RefProperty(ref) : new StringProperty(typeName);
+        Property prop;
+
+        if (ref != null) {
+            prop = new RefProperty(ref);
+        } else {
+            // special for byte arrays
+            if (array && ("byte".equals(typeName) || "java.lang.Byte".equals(typeName))) {
+                prop = new ByteArrayProperty();
+                array = false;
+            } else if ("java.lang.String".equals(typeName)) {
+                prop = new StringProperty();
+            } else if ("int".equals(typeName) || "java.lang.Integer".equals(typeName)) {
+                prop = new IntegerProperty();
+            } else if ("long".equals(typeName) || "java.lang.Long".equals(typeName)) {
+                prop = new LongProperty();
+            } else if ("float".equals(typeName) || "java.lang.Float".equals(typeName)) {
+                prop = new FloatProperty();
+            } else if ("double".equals(typeName) || "java.lang.Double".equals(typeName)) {
+                prop = new DoubleProperty();
+            } else if ("boolean".equals(typeName) || "java.lang.Boolean".equals(typeName)) {
+                prop = new BooleanProperty();
+            } else {
+                prop = new StringProperty(typeName);
+            }
+        }
+
         if (array) {
             return new ArrayProperty(prop);
         } else {
