@@ -29,7 +29,7 @@ import static org.apache.camel.component.yql.YqlProducer.HTTP_REQUEST;
 import static org.apache.camel.component.yql.YqlProducer.STATUS;
 import static org.hamcrest.CoreMatchers.containsString;
 
-public class YqlComponentIT extends CamelTestSupport {
+public class YqlComponentIntegrationTest extends CamelTestSupport {
 
     private static final String QUERY = "select * from yahoo.finance.quotes where symbol in ('GOOG')";
     private static final String CALLBACK = "yqlCallback";
