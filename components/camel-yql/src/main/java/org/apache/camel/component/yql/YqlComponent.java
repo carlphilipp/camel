@@ -29,7 +29,7 @@ public class YqlComponent extends DefaultComponent {
         final YqlConfiguration configuration = new YqlConfiguration();
         configuration.setQuery(remaining);
         configuration.setFormat((String) parameters.getOrDefault("format", "json"));
-        configuration.setDiagnostics((boolean) parameters.getOrDefault("diagnostics", false));
+        configuration.setDiagnostics(Boolean.getBoolean((String) parameters.getOrDefault("diagnostics", "false")));
         configuration.setCallback((String) parameters.getOrDefault("callback", ""));
 
         final Endpoint endpoint = new YqlEndpoint(uri, this, configuration);

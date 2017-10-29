@@ -26,9 +26,9 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class YahooClient {
+public class YqlClient {
 
-    private static final Logger LOG = LoggerFactory.getLogger(YahooClient.class);
+    private static final Logger LOG = LoggerFactory.getLogger(YqlClient.class);
     private static final CloseableHttpClient HTTP_CLIENT = HttpClients.createDefault();
 
     public YqlResponse get(final String query, final String format, final boolean diagnostics, final String callback) throws Exception {

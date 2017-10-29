@@ -17,26 +17,26 @@
 package org.apache.camel.component.yql;
 
 import org.apache.camel.Exchange;
-import org.apache.camel.component.yql.client.YahooClient;
+import org.apache.camel.component.yql.client.YqlClient;
 import org.apache.camel.component.yql.client.YqlResponse;
 import org.apache.camel.component.yql.configuration.YqlConfiguration;
 import org.apache.camel.impl.DefaultProducer;
 
 /**
- *
+ * A Producer that send messages to YQL
  */
 public class YqlProducer extends DefaultProducer {
 
-    static final String STATUS = "CamelYqlHttpStatus";
-    static final String HTTP_REQUEST = "CamelYqlHttpRequest";
+    static final String CAMEL_YQL_HTTP_STATUS = "CamelYqlHttpStatus";
+    static final String CAMEL_YQL_HTTP_REQUEST = "CamelYqlHttpRequest";
 
     private final YqlEndpoint endpoint;
-    private final YahooClient yahooClient;
+    private final YqlClient yahooClient;
 
     YqlProducer(final YqlEndpoint endpoint) {
         super(endpoint);
         this.endpoint = endpoint;
-        this.yahooClient = new YahooClient();
+        this.yahooClient = new YqlClient();
     }
 
     @Override
@@ -48,8 +48,8 @@ public class YqlProducer extends DefaultProducer {
                 configuration.isDiagnostics(),
                 configuration.getCallback()
         );
-        exchange.getIn().setHeader(STATUS, yqlResponse.getStatus());
-        exchange.getIn().setHeader(HTTP_REQUEST, yqlResponse.getHttpRequest());
+        exchange.getIn().setHeader(CAMEL_YQL_HTTP_STATUS, yqlResponse.getStatus());
+        exchange.getIn().setHeader(CAMEL_YQL_HTTP_REQUEST, yqlResponse.getHttpRequest());
         exchange.getIn().setBody(yqlResponse.getBody());
     }
 }

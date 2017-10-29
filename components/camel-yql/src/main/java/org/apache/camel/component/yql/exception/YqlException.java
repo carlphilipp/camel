@@ -16,9 +16,9 @@
  */
 package org.apache.camel.component.yql.exception;
 
-public class YahooException extends RuntimeException {
+public class YqlException extends RuntimeException {
 
-    public YahooException(final String message) {
+    public YqlException(final String message) {
         super(message);
     }
 }
