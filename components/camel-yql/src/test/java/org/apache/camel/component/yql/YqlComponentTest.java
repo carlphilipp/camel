@@ -25,6 +25,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.text.IsEmptyString.emptyString;
+
 public class YqlComponentTest extends CamelTestSupport {
 
     @Rule
@@ -57,7 +60,7 @@ public class YqlComponentTest extends CamelTestSupport {
     @Test
     public void testConfigurationSetup() {
         // given
-        final YqlEndpoint yqlEndpoint = (YqlEndpoint) context.getEndpoint("yql://query?format=xml");
+        final YqlEndpoint yqlEndpoint = (YqlEndpoint) context.getEndpoint("yql://query?format=xml&callback=yqlCallback&diagnostics=true");
 
         // when
         final YqlConfiguration yqlConfiguration = yqlEndpoint.getConfiguration();
@@ -66,6 +69,24 @@ public class YqlComponentTest extends CamelTestSupport {
         assertNotNull(yqlConfiguration);
         assertEquals("query", yqlConfiguration.getQuery());
         assertEquals("xml", yqlConfiguration.getFormat());
+        assertEquals("yqlCallback", yqlConfiguration.getCallback());
+        assertTrue(yqlConfiguration.isDiagnostics());
+    }
+
+    @Test
+    public void testConfigurationSetupDefault() {
+        // given
+        final YqlEndpoint yqlEndpoint = (YqlEndpoint) context.getEndpoint("yql://query");
+
+        // when
+        final YqlConfiguration yqlConfiguration = yqlEndpoint.getConfiguration();
+
+        // then
+        assertNotNull(yqlConfiguration);
+        assertEquals("query", yqlConfiguration.getQuery());
+        assertEquals("json", yqlConfiguration.getFormat());
+        assertThat(yqlConfiguration.getCallback(), is(emptyString()));
+        assertFalse(yqlConfiguration.isDiagnostics());
     }
 
     @Test

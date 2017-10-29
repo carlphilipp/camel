@@ -16,7 +16,7 @@
  */
 package org.apache.camel.component.yql.configuration;
 
-import org.apache.camel.component.yql.exception.YahooException;
+import org.apache.camel.component.yql.exception.YqlException;
 import org.apache.commons.lang3.StringUtils;
 
 public final class YqlConfigurationValidator {
@@ -26,11 +26,11 @@ public final class YqlConfigurationValidator {
 
     public static void validateProperties(final YqlConfiguration configuration) {
         if (StringUtils.isEmpty(configuration.getQuery())) {
-            throw new YahooException("<query> is not present or not valid!");
+            throw new YqlException("<query> is not present or not valid!");
         }
 
         if (!StringUtils.equalsAny(configuration.getFormat(), "json", "xml")) {
-            throw new YahooException("<format> is not valid!");
+            throw new YqlException("<format> is not valid!");
         }
     }
 }

@@ -16,7 +16,7 @@
  */
 package org.apache.camel.component.yql.configuration;
 
-import org.apache.camel.component.yql.exception.YahooException;
+import org.apache.camel.component.yql.exception.YqlException;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -43,7 +43,7 @@ public class YqlConfigurationValidatorTest {
     @Test
     public void testMissingQuery() {
         // then
-        thrown.expect(YahooException.class);
+        thrown.expect(YqlException.class);
         thrown.expectMessage("<query> is not present or not valid!");
 
         // given
@@ -84,7 +84,7 @@ public class YqlConfigurationValidatorTest {
     @Test
     public void testEmptyFormat() {
         // then
-        thrown.expect(YahooException.class);
+        thrown.expect(YqlException.class);
         thrown.expectMessage("<format> is not valid!");
 
         // given
@@ -98,7 +98,7 @@ public class YqlConfigurationValidatorTest {
     @Test
     public void testWrongFormat() {
         // then
-        thrown.expect(YahooException.class);
+        thrown.expect(YqlException.class);
         thrown.expectMessage("<format> is not valid!");
 
         // given

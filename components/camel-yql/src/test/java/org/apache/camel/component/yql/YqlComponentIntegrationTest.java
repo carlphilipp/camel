@@ -25,8 +25,8 @@ import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Test;
 
-import static org.apache.camel.component.yql.YqlProducer.HTTP_REQUEST;
-import static org.apache.camel.component.yql.YqlProducer.STATUS;
+import static org.apache.camel.component.yql.YqlProducer.CAMEL_YQL_HTTP_REQUEST;
+import static org.apache.camel.component.yql.YqlProducer.CAMEL_YQL_HTTP_STATUS;
 import static org.hamcrest.CoreMatchers.containsString;
 
 public class YqlComponentIntegrationTest extends CamelTestSupport {
@@ -52,13 +52,13 @@ public class YqlComponentIntegrationTest extends CamelTestSupport {
     }
 
     @Test
-    public void testFinanceQuote() throws Exception {
+    public void testFinanceQuote() {
         template.sendBody("");
 
         final Exchange exchange = end.getReceivedExchanges().get(0);
         final String body = exchange.getIn().getBody(String.class);
-        final Integer status = exchange.getIn().getHeader(STATUS, Integer.class);
-        final String httpRequest = exchange.getIn().getHeader(HTTP_REQUEST, String.class);
+        final Integer status = exchange.getIn().getHeader(CAMEL_YQL_HTTP_STATUS, Integer.class);
+        final String httpRequest = exchange.getIn().getHeader(CAMEL_YQL_HTTP_REQUEST, String.class);
         assertNotNull(body);
         assertThat(body, containsString(CALLBACK + "("));
         assertNotNull(status);
