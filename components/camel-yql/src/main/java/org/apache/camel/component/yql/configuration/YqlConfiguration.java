@@ -66,7 +66,7 @@ public class YqlConfiguration {
     /**
      * Set if diagnostics should be included in the query
      */
-    public void setDiagnostics(boolean diagnostics) {
+    public void setDiagnostics(final boolean diagnostics) {
         this.diagnostics = diagnostics;
     }
 
@@ -77,7 +77,7 @@ public class YqlConfiguration {
     /**
      * Set the callback function
      */
-    public void setCallback(String callback) {
+    public void setCallback(final String callback) {
         this.callback = callback;
     }
 }
