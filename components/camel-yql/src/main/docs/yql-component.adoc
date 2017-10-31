@@ -41,7 +41,7 @@ yql:query
 
 with the following path and query parameters:
 
-==== Path Parameters (1 parameters):
+==== Path Parameters (1 parameter):
 
 [width="100%",cols="2,5,^1,2",options="header"]
 |===
@@ -54,10 +54,9 @@ with the following path and query parameters:
 [width="100%",cols="2,5,^1,2",options="header"]
 |===
 | Name | Description | Default | Type
-| *callback* (producer) | Set the callback function |  | String
-| *diagnostics* (producer) | Set if diagnostics should be included in the query | false | boolean
-| *format* (producer) | Set the YQL format xml or json |  | String
-| *synchronous* (advanced) | Sets whether synchronous processing should be strictly used or Camel is allowed to use asynchronous processing (if supported). | false | boolean
+| *format* | Set the YQL format, xml or json | json | String
+| *diagnostics* | Set if diagnostics should be included in the query | false | boolean
+| *callback* | Set the callback function |  | String
 |===
 // endpoint options: END
 
